@@ -17,7 +17,7 @@ public class TestSpringApplication {
 
 		@GetMapping("/")
 		public String hello() {
-			return "hello";
+			return "hello22";
 		}
 	}
 }
