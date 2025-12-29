@@ -11,12 +11,12 @@ pipeline {
 	}
 
 	environment {
-		IMAGE_NAME = "genq"
+		IMAGE_NAME = "genq-test"
 		IMAGE_TAG = "${BUILD_NUMBER}"
-		CONTAINER_NAME = "genq-local"
+		CONTAINER_NAME = "genq-test"
 
 		HOST_PORT = "5081"
-		CONTAINER_PORT = "5081"
+		CONTAINER_PORT = "8080"
 	}
 
 	stages {
