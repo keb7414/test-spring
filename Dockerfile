@@ -12,6 +12,9 @@ COPY gradlew.bat gradlew.bat
 COPY gradle gradle
 COPY build.gradle* settings.gradle* ./
 
+# 실행 권한 (중요)
+RUN chmod +x /app/gradlew
+
 # 소스 복사 후 빌드
 COPY . .
 RUN ./gradlew clean bootJar -x test
@@ -22,8 +25,7 @@ RUN ./gradlew clean bootJar -x test
 FROM eclipse-temurin:21-jre
 WORKDIR /app
 
-# 빌드 산출물 복사
 COPY --from=builder /app/build/libs/*.jar app.jar
 
-EXPOSE 5081
+EXPOSE 8080
 ENTRYPOINT ["java","-jar","/app/app.jar"]
