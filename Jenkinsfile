@@ -21,17 +21,6 @@ pipeline {
 
 	stages {
 
-		stage('Checkout') {
-			steps {
-				git(
-					branch: 'master',
-					url: 'https://github.com/keb7414/test-spring.git'
-					// public repo면 credentialsId 없어도 됩니다.
-					// credentialsId: 'github-token'
-				)
-			}
-		}
-
 		stage('Build Gradle') {
 			steps {
 				bat '''
