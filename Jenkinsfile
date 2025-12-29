@@ -7,32 +7,92 @@ pipeline {
 
 	options {
 		disableConcurrentBuilds()
+		timestamps()
+	}
+
+	environment {
+		IMAGE_NAME = "genq"
+		IMAGE_TAG = "${BUILD_NUMBER}"
+		CONTAINER_NAME = "genq-local"
+
+		HOST_PORT = "5081"
+		CONTAINER_PORT = "5081"
 	}
 
 	stages {
-		stage('Checkout + Build (workspace: /work)') {
+
+		stage('Checkout') {
 			steps {
-				ws("/work/${env.JOB_NAME}/${env.BUILD_NUMBER}") {
-					git(
-						branch: 'master',
-						url: 'https://github.com/keb7414/test-spring.git',
-						credentialsId: 'github-token'
+				git(
+					branch: 'master',
+					url: 'https://github.com/keb7414/test-spring.git'
+					// public repo면 credentialsId 없어도 됩니다.
+					// credentialsId: 'github-token'
+				)
+			}
+		}
+
+		stage('Build Gradle') {
+			steps {
+				bat '''
+					@echo on
+					echo === Java Version ===
+					java -version
+					echo === Gradle Wrapper Version ===
+					if exist gradlew.bat (
+						gradlew.bat -v
+					) else (
+						echo ERROR: gradlew.bat not found
+						exit /b 1
 					)
 
-					bat 'gradlew.bat clean build'
-				}
+					echo === Gradle Build ===
+					gradlew.bat clean build -x test --info
+				'''
+			}
+		}
+
+		stage('Docker Build') {
+			steps {
+				bat '''
+					@echo on
+					echo === Docker Version ===
+					docker version
+
+					if not exist Dockerfile (
+						echo ERROR: Dockerfile not found in workspace
+						dir
+						exit /b 1
+					)
+
+					echo === Docker Build ===
+					docker build -t %IMAGE_NAME%:%IMAGE_TAG% .
+				'''
+			}
+		}
+
+		stage('Run (Local Deploy)') {
+			steps {
+				bat '''
+					@echo on
+					echo === Stop/Remove Existing Container (if any) ===
+					docker rm -f %CONTAINER_NAME% 2>nul
+
+					echo === Run Container ===
+					docker run -d --name %CONTAINER_NAME% -p %HOST_PORT%:%CONTAINER_PORT% %IMAGE_NAME%:%IMAGE_TAG%
+
+					echo === Container Status ===
+					docker ps --filter "name=%CONTAINER_NAME%"
+
+					echo === Recent Logs ===
+					docker logs --tail 80 %CONTAINER_NAME%
+				'''
 			}
 		}
 	}
 
 	post {
-		success { echo '✅ Build Success' }
-		failure { echo '❌ Build Failed' }
-
-		always {
-			// 빌드 끝나면 /work 하위 디스크 사용량이 계속 늘어날 수 있어서,
-			// 필요하면 아래 cleanWs() 사용을 고려하세요 (Workspace Cleanup 플러그인 필요)
-			// cleanWs()
-		}
+		success { echo '✅ Local Build & Run Success' }
+		failure { echo '❌ Local Build & Run Failed' }
 	}
 }
