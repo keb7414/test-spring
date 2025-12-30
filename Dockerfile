@@ -1,31 +1,11 @@
 # syntax=docker/dockerfile:1
 
-# =========================
-# 1) Build stage
-# =========================
-FROM eclipse-temurin:21-jdk AS builder
-WORKDIR /app
-
-# Gradle wrapper & build scripts 먼저 복사 (캐시 효율)
-COPY gradlew gradlew
-COPY gradlew.bat gradlew.bat
-COPY gradle gradle
-COPY build.gradle* settings.gradle* ./
-
-# 실행 권한 (중요)
-RUN chmod +x /app/gradlew
-
-# 소스 복사 후 빌드
-COPY . .
-RUN ./gradlew clean bootJar -x test
-
-# =========================
-# 2) Run stage
-# =========================
+# 실행 환경만 설정 (JRE 사용)
 FROM eclipse-temurin:21-jre
 WORKDIR /app
 
-COPY --from=builder /app/build/libs/*.jar app.jar
+# 젠킨스가 빌드한 JAR 파일을 복사 (경로 주의: build/libs/ 아래에 생성됨)
+COPY build/libs/*.jar app.jar
 
 EXPOSE 5081
 ENTRYPOINT ["java","-jar","/app/app.jar"]
