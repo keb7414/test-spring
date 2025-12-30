@@ -16,65 +16,48 @@ pipeline {
 	}
 
 	stages {
+		// 1. 빌드 준비 및 환경 확인
+		stage('Prepare') {
+			steps {
+				sh '''
+					echo "=== Check Environment ==="
+					java -version
+					docker version
+				'''
+			}
+		}
 
-		stage('Build Gradle') {
+		// 2. 프로젝트 빌드 (Jar 생성)
+		stage('Build') {
 			steps {
 				sh '''
 					set -e
-					echo "=== Java Version ==="
-					java -version
-
-					echo "=== Gradle Wrapper Version ==="
 					if [ -f ./gradlew ]; then
 						chmod +x ./gradlew
-						./gradlew -v
+						./gradlew clean build -x test --info
 					else
 						echo "ERROR: gradlew not found"
-						ls -al
 						exit 1
 					fi
-
-					echo "=== Gradle Build ==="
-					./gradlew clean build -x test --info
 				'''
 			}
 		}
 
-		stage('Docker Build') {
+		// 3. 도커 빌드 및 배포 (통합 단계)
+		stage('Deploy') {
 			steps {
 				sh '''
 					set -e
-					echo "=== Docker Version ==="
-					docker version
-
-					if [ ! -f Dockerfile ]; then
-						echo "ERROR: Dockerfile not found in workspace"
-						pwd
-						ls -al
-						exit 1
-					fi
-
-					echo "=== Docker Build ==="
+					echo "=== Docker Build & Deploy ==="
 					docker build -t "${IMAGE_NAME}:${IMAGE_TAG}" .
-				'''
-			}
-		}
-
-		stage('Run (Local Deploy)') {
-			steps {
-				sh '''
-					set -e
-					echo "=== Stop/Remove Existing Container (if any) ==="
+					
 					docker rm -f "${CONTAINER_NAME}" >/dev/null 2>&1 || true
-
-					echo "=== Run Container ==="
-					docker run -d --name "${CONTAINER_NAME}" -p "${HOST_PORT}:${CONTAINER_PORT}" "${IMAGE_NAME}:${IMAGE_TAG}"
-
-					echo "=== Container Status ==="
+					
+					docker run -d --name "${CONTAINER_NAME}" \
+						-p "${HOST_PORT}:${CONTAINER_PORT}" \
+						"${IMAGE_NAME}:${IMAGE_TAG}"
+					
 					docker ps --filter "name=${CONTAINER_NAME}"
-
-					echo "=== Recent Logs ==="
-					docker logs --tail 80 "${CONTAINER_NAME}" || true
 				'''
 			}
 		}
