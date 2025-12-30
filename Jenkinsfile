@@ -12,7 +12,7 @@ pipeline {
 		CONTAINER_NAME = "genq-test"
 
 		HOST_PORT = "5081"
-		CONTAINER_PORT = "8080"
+		CONTAINER_PORT = "5081"
 	}
 
 	stages {
