@@ -8,7 +8,6 @@ pipeline {
 
 	environment {
 		IMAGE_NAME = "genq-test"
-		BUILD_TAG = "${BUILD_NUMBER}"
 		IMAGE_TAG = "latest"
 		
 		CONTAINER_NAME = "genq-test"
@@ -51,7 +50,7 @@ pipeline {
 					set -e
 					echo "=== Docker Build  ==="
 					# 1. 새 이미지 빌드 (기존 이름과 겹치면 기존 것은 이름 없는 이미지가 됨)
-					docker build -t "${IMAGE_NAME}:${IMAGE_TAG}" -t "${IMAGE_NAME}:${BUILD_TAG}" .
+					docker build -t "${IMAGE_NAME}:${IMAGE_TAG}" .
 					
 					echo "=== Replace Container ==="
 					# 2. 기존 컨테이너 교체
