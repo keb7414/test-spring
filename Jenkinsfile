@@ -8,9 +8,10 @@ pipeline {
 
 	environment {
 		IMAGE_NAME = "genq-test"
-		IMAGE_TAG = "${BUILD_NUMBER}"
+		BUILD_TAG = "${BUILD_NUMBER}"
+		IMAGE_TAG = "latest"
+		
 		CONTAINER_NAME = "genq-test"
-
 		HOST_PORT = "5081"
 		CONTAINER_PORT = "5081"
 	}
@@ -48,9 +49,12 @@ pipeline {
 			steps {
 				sh '''
 					set -e
-					echo "=== Docker Build & Deploy ==="
-					docker build -t "${IMAGE_NAME}:${IMAGE_TAG}" .
+					echo "=== Docker Build  ==="
+					# 1. 새 이미지 빌드 (기존 이름과 겹치면 기존 것은 이름 없는 이미지가 됨)
+					docker build -t "${IMAGE_NAME}:${IMAGE_TAG}" -t "${IMAGE_NAME}:${BUILD_TAG}" .
 					
+					echo "=== Replace Container ==="
+					# 2. 기존 컨테이너 교체
 					docker rm -f "${CONTAINER_NAME}" >/dev/null 2>&1 || true
 					
 					docker run -d --name "${CONTAINER_NAME}" \
@@ -58,6 +62,10 @@ pipeline {
 						"${IMAGE_NAME}:${IMAGE_TAG}"
 					
 					docker ps --filter "name=${CONTAINER_NAME}"
+					
+					echo "=== Cleanup Unused Images ==="
+					# 3. 태그가 겹쳐서 이름이 없어진 구버전 이미지들 삭제
+					docker image prune -f
 				'''
 			}
 		}
