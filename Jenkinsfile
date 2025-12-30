@@ -48,23 +48,21 @@ pipeline {
 			steps {
 				sh '''
 					set -e
-					echo "=== Docker Build  ==="
-					# 1. 새 이미지 빌드 (기존 이름과 겹치면 기존 것은 이름 없는 이미지가 됨)
-					docker build -t "${IMAGE_NAME}:${IMAGE_TAG}" .
+					echo "=== Docker Build ==="
+					docker build -t "${IMAGE_NAME}:latest" .
 					
-					echo "=== Replace Container ==="
-					# 2. 기존 컨테이너 교체
-					docker rm -f "${CONTAINER_NAME}" >/dev/null 2>&1 || true
+					echo "=== Apply Kubernetes Manifests ==="
+					# 1. 쿠버네티스 설정 파일 적용 (없으면 생성, 있으면 업데이트)
+					kubectl apply -f k8s/deployment.yaml
+					kubectl apply -f k8s/service.yaml
 					
-					docker run -d --name "${CONTAINER_NAME}" \
-						-p "${HOST_PORT}:${CONTAINER_PORT}" \
-						"${IMAGE_NAME}:${IMAGE_TAG}"
+					echo "=== Force Restart Deployment ==="
+					# 2. 이미지가 갱신되었으므로 포드(Pod)를 재시작하여 새 이미지 반영
+					kubectl rollout restart deployment/genq-test-deployment
 					
-					docker ps --filter "name=${CONTAINER_NAME}"
-					
-					echo "=== Cleanup Unused Images ==="
-					# 3. 태그가 겹쳐서 이름이 없어진 구버전 이미지들 삭제
-					docker image prune -f
+					echo "=== K8s Status ==="
+					kubectl get pods
+					kubectl get service genq-test-service
 				'''
 			}
 		}
