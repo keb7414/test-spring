@@ -7,10 +7,10 @@ pipeline {
 	}
 
 	environment {
-		IMAGE_NAME = "genq-test"
+		IMAGE_NAME = "test-job"
 		IMAGE_TAG = "latest"
 		
-		CONTAINER_NAME = "genq-test"
+		CONTAINER_NAME = "test-job"
 		HOST_PORT = "5081"
 		CONTAINER_PORT = "5081"
 	}
@@ -58,11 +58,11 @@ pipeline {
 					
 					echo "=== Force Restart Deployment ==="
 					# 2. 이미지가 갱신되었으므로 포드(Pod)를 재시작하여 새 이미지 반영
-					kubectl rollout restart deployment/genq-test-deployment
+					kubectl rollout restart deployment/test-job-deployment
 					
 					echo "=== K8s Status ==="
 					kubectl get pods
-					kubectl get service genq-test-service
+					kubectl get service test-job-service
 				'''
 			}
 		}
