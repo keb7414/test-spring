@@ -1,22 +1,26 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: genq-test-deployment
+  name: test-job-deployment
   labels:
-    app: genq-test
+    app: test-job
 spec:
   replicas: 1 # 실행할 컨테이너 개수
   selector:
     matchLabels:
-      app: genq-test
+      app: test-job
   template:
     metadata:
       labels:
-        app: genq-test
+        app: test-job
     spec:
       containers:
-      - name: genq-test
-        image: genq-test:latest # 젠킨스가 빌드한 이미지 명칭
-        imagePullPolicy: Never # 로컬 이미지를 우선 사용하도록 설정 (중요)
+      - name: test-job
+        image: eunbyeol120/test-job:latest # 젠킨스가 빌드한 이미지 명칭
         ports:
         - containerPort: 5081
+        resources:
+          limits:
+            memory: "512Mi"
+          requests:
+            memory: "256Mi"
