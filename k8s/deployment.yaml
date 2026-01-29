@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: test-job-container
-        image: eunbyeol120/test-job:latest # 젠킨스가 빌드한 이미지 명칭
+        image: eunbyeol120/test-job:5 # 젠킨스가 빌드한 이미지 명칭
         ports:
         - containerPort: 5081
         resources:
