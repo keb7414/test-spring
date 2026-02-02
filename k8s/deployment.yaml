@@ -18,7 +18,7 @@ spec:
       - name: docker-registry
       containers:
       - name: test-job-container
-        image: docker.comes.co.kr/v2/comes/test-job:latest
+        image: docker.comes.co.kr/comes/test-job:latest
         ports:
         - containerPort: 5081
         resources:
