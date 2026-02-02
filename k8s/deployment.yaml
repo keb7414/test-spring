@@ -14,9 +14,11 @@ spec:
       labels:
         app: test-job
     spec:
+      imagePullSecrets:
+      - name: docker-registry
       containers:
       - name: test-job-container
-        image: eunbyeol120/test-job:5 # 젠킨스가 빌드한 이미지 명칭
+        image: docker.comes.co.kr/v2/comes/test-job:latest
         ports:
         - containerPort: 5081
         resources:
